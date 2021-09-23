@@ -1,11 +1,10 @@
 #include <iostream> 
 #include <sstream>
-#include <algorithm>
 #include <map> 
-#include <stack> 
-#include <string> 
+#include <stack>
 #include <vector> 
-#include <cstdlib>
+#include <algorithm>
+#include <iterator>
 
 using namespace std; 
 
@@ -13,7 +12,8 @@ map<int, vector<string>> AdjacencyList;
 vector<int> unvisitedNodes; 
 vector<int> visitedNodes; 
 
-// function returns the position in the map of the string it is passed
+// function returns the position in the map of the string it is passed or -1 if 
+// the string isn't the first element of one of the vector<string>s in the AL
 int FindPosInMap(string NodeToFind)
 {
     int posCounter = 0;
@@ -25,18 +25,22 @@ int FindPosInMap(string NodeToFind)
         }
         posCounter++;
     }
+
     return -1;
 }
 
+// Function recursively pushes and pops nodes off a stack to traverse the adjacency list
 vector<string> DFS(string node, int alPos) 
 { 
     vector<string> output; 
     output.push_back(node); 
     visitedNodes.push_back(alPos);
 
-    for (int i = 1; i < (int)AdjacencyList[alPos].size(); i++) // for the children of alPos
+    int alSize = (int)(AdjacencyList[alPos].size());
+    for (int i = 1; i < alSize; i++) // for the children of alPos
     {
-        if (count(visitedNodes.begin(), visitedNodes.end(), AdjacencyList[alPos][i]) == 0) // child hasn't been visited
+        int isNodeAlreadyTraversed = (int)count(visitedNodes.begin(), visitedNodes.end(), AdjacencyList[alPos][i]);
+        if (isNodeAlreadyTraversed == 0) // child hasn't been visited
         {
             vector<string> temp = DFS(AdjacencyList[alPos][i], FindPosInMap(AdjacencyList[alPos][i]));
             for (string st : temp)
@@ -49,6 +53,7 @@ vector<string> DFS(string node, int alPos)
     return output; 
 }
 
+// Function gets input for the graph, calls DFS to get the output information, then prints it to the screen
 int main() { 
     int numGraphs = 0; 
     cin >> numGraphs; 
@@ -104,10 +109,11 @@ int main() {
             }
         }
         
-        for (int k = 0; k < output.size(); k++)  // output 
+        int outputSize = (int)(output.size());
+        for (int k = 0; k < outputSize; k++)  // output 
         { 
             cout << output[k]; 
-            (k == (int)output.size() - 1) ? cout << endl : cout << " "; 
+            (k == outputSize - 1) ? cout << endl : cout << " "; // print new line or space depending on where at in vector
         } 
     } 
     
