@@ -1,25 +1,24 @@
 #include <iostream> 
 #include <sstream>
-#include <map> 
-#include <stack>
 #include <vector> 
 #include <algorithm>
 #include <iterator>
 
 using namespace std; 
 
-map<int, vector<string>> AdjacencyList; 
-vector<int> unvisitedNodes; 
-vector<int> visitedNodes; 
+vector<vector<string>> AdjacencyList; 
+vector<string> unvisitedNodes; 
+vector<string> visitedNodes;
+int numNodesRemoved = 0;
 
-// function returns the position in the map of the string it is passed or -1 if 
+// function returns the position in the 2D Adjacency List of the string it is passed or -1 if 
 // the string isn't the first element of one of the vector<string>s in the AL
-int FindPosInMap(string NodeToFind)
+int FindPosInList(string NodeToFind)
 {
     int posCounter = 0;
-    for (auto val : AdjacencyList)
+    for (vector<string> vs : AdjacencyList)
     {
-        if (val.second[0] == NodeToFind)
+        if (vs[0] == NodeToFind)
         {
             return posCounter;
         }
@@ -29,20 +28,21 @@ int FindPosInMap(string NodeToFind)
     return -1;
 }
 
-// Function recursively pushes and pops nodes off a stack to traverse the adjacency list
-vector<string> DFS(string node, int alPos) 
-{ 
-    vector<string> output; 
-    output.push_back(node); 
-    visitedNodes.push_back(alPos);
+// Function recursively "pushes" and "pops" nodes off a "stack" to traverse the adjacency list
+vector<string> DFS(string node) 
+{
+    vector<string> output;    
+    output.push_back(node);
+    visitedNodes.push_back(node);
+    unvisitedNodes.erase(find(unvisitedNodes.begin(), unvisitedNodes.end(), node));
+    numNodesRemoved++;
 
-    int alSize = (int)(AdjacencyList[alPos].size());
-    for (int i = 1; i < alSize; i++) // for the children of alPos
+    for (int i = 1; i < AdjacencyList[FindPosInList(node)].size(); i++) // for the children of node
     {
-        int isNodeAlreadyTraversed = (int)count(visitedNodes.begin(), visitedNodes.end(), AdjacencyList[alPos][i]);
-        if (isNodeAlreadyTraversed == 0) // child hasn't been visited
+        //check if child is in visitedNodes
+        if (*find(visitedNodes.begin(), visitedNodes.end(), AdjacencyList[FindPosInList(node)][i]) != AdjacencyList[FindPosInList(node)][i]) // child hasn't been visited
         {
-            vector<string> temp = DFS(AdjacencyList[alPos][i], FindPosInMap(AdjacencyList[alPos][i]));
+            vector<string> temp = DFS(AdjacencyList[FindPosInList(node)][i]);
             for (string st : temp)
             {
                 output.push_back(st);
@@ -58,7 +58,6 @@ int main() {
     int numGraphs = 0; 
     cin >> numGraphs; 
     
-    stack<string> nodeContainer; 
     vector<string> output; 
     
     for (int i = 0; i < numGraphs; i++) 
@@ -66,10 +65,6 @@ int main() {
         int numNodes = 0; 
         cin >> numNodes;
 
-        while (!nodeContainer.empty())  // start fresh for next graph
-        { 
-            nodeContainer.pop(); 
-        }
         unvisitedNodes.clear(); 
         visitedNodes.clear(); 
         AdjacencyList.clear(); 
@@ -81,7 +76,7 @@ int main() {
 
             if (j == 0)
             {
-                getline(cin, nodeAndAdjacentNodeList); // temp, whitespacing weird for some reason?
+                getline(cin, nodeAndAdjacentNodeList); // temp, need to grab line from prev cin in order to accurately grab next line
             }
             getline(cin, nodeAndAdjacentNodeList);
 
@@ -93,27 +88,22 @@ int main() {
                 niceInput.push_back(token);
             } 
             
-            AdjacencyList.insert({j, niceInput}); 
-            unvisitedNodes.push_back(j); 
+            AdjacencyList.push_back(niceInput);
+            unvisitedNodes.push_back(AdjacencyList[AdjacencyList.size() - 1][0]);
         }
 
-        int counter = 0; // for keeping track of where at if DFS doesn't complete (disconnected graph)
         while (!unvisitedNodes.empty())
         {
             // two step process here accounts for multiple possibilities
             // if we were to just set output to be = to the next line it could get overwritten
-            vector<string> temp = DFS(AdjacencyList[counter][0], counter); 
-            for (string s : temp)
-            {
-                output.push_back(s);
-            }
+
+            DFS(AdjacencyList[FindPosInList(unvisitedNodes[0])][0]);
         }
         
-        int outputSize = (int)(output.size());
-        for (int k = 0; k < outputSize; k++)  // output 
+        for (int k = 0; k < visitedNodes.size(); k++)  // output 
         { 
-            cout << output[k]; 
-            (k == outputSize - 1) ? cout << endl : cout << " "; // print new line or space depending on where at in vector
+            cout << visitedNodes[k]; 
+            (k == visitedNodes.size() - 1) ? cout << endl : cout << " "; // print new line or space depending on where at in vector
         } 
     } 
     
