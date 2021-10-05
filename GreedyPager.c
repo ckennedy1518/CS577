@@ -1,5 +1,10 @@
 #include <stdio.h>
 
+typedef struct ElementAndNext {
+    int pageNumber;
+    int nextInstance;
+} PageAndInstance;
+
 int main() 
 {
     int numInstances;
@@ -10,7 +15,7 @@ int main()
         int pageFaults = 0;
         int numPages;
         scanf("%d", &numPages);
-        int* cache = malloc(numPages * sizeof(int));
+        PageAndInstance* cache = malloc(numPages * sizeof(PageAndInstance));
 
         int spaceNeeded;
         scanf("%d", &spaceNeeded);
@@ -25,66 +30,75 @@ int main()
 
         int cacheLength = 0; // keep track of the current length of the cache
         for (int j = 0; j < spaceNeeded; j++) // iterate through input
-        { 
+        {
+            int furthestAway = 0; // loop double functions to get furthest away
+            int cachePos = 0;
             int needToContinue = 0;
             for (int k = 0; k < cacheLength; k++) 
             {
-                if (cache[k] == pagesToInsert[j]) 
+                cache[k].nextInstance--; // decrement since we're moving forward in page list
+                if (cache[k].nextInstance == 0)
+                {
+                    int howFarInFuture = 0;
+                    for (int l = j + 1; l < spaceNeeded; l++)
+                    {
+                        howFarInFuture++;
+                        if (cache[k].pageNumber == pagesToInsert[l])
+                        {
+                            cache[k].nextInstance = howFarInFuture;
+                            break;
+                        }
+                        else if (l == spaceNeeded - 1)
+                        {
+                            cache[k].nextInstance = howFarInFuture + 1;
+                            break;
+                        }
+                    }
+                }
+
+                if (cache[k].pageNumber == pagesToInsert[j]) // have a hit?
                 {
                     needToContinue = 1;
-                    break;
+                }
+
+                if (cache[k].nextInstance > furthestAway)
+                {
+                    cachePos = k;
+                    furthestAway = cache[k].nextInstance;
                 }
             }
 
             if (needToContinue == 1) // we have a hit?
                 continue;
                 
-            pageFaults++; // we have a fault
+            pageFaults++; // else we have a fault
             if (cacheLength == numPages) // cache is full, use greedy heuristic to replace
             {
-                int furthestAway = 0;
-                int cachePos = 0;
-                int furthestFound = 0; // keeps track if one page isn't in the future of the page input
-
-                for (int k = 0; k < numPages; k++) // loop checks elements in cache
-                { 
-                    int nextHit = 0; // how far away the next hit will be for this page
-
-                    for (int l = j + 1; l < spaceNeeded; l++) // loop iterates through offline input we haven't visited
-                    { 
-                        if (l == spaceNeeded - 1 && cache[k] != pagesToInsert[l]) 
-                        {
-                            cachePos = k;
-                            furthestFound = 1;
-                            break;
-                        }
-
-                        nextHit++;
-                        if (cache[k] == pagesToInsert[l]) 
-                        {
-                            if (nextHit > furthestAway) 
-                            {
-                                furthestAway = nextHit;
-                                cachePos = k;
-                            }
-                            break;
-                        }
-                    }
-
-                    if (furthestFound == 1)
-                        break;
-                }
-
-                cache[cachePos] = pagesToInsert[j]; // replace page in cache
+                cache[cachePos].pageNumber = pagesToInsert[j]; // already know furthest
             } else // have a miss and cache isn't full yet
             {
-                cache[cacheLength] = pagesToInsert[j];
+                cache[cacheLength].pageNumber = pagesToInsert[j];
+                cachePos = cacheLength;
                 cacheLength++;
+            }
+
+            int howFarInFuture = 0; // get when next element is for one we're adding
+            for (int k = j + 1; k < spaceNeeded; k++)
+            {
+                howFarInFuture++;
+                if (cache[cachePos].pageNumber == pagesToInsert[k])
+                {
+                    cache[cachePos].nextInstance = howFarInFuture;
+                    break;
+                } else if (k == spaceNeeded - 1)
+                {
+                    cache[cachePos].nextInstance = howFarInFuture + 1;
+                    break; // would leave loop after this anyway, but one less condition to check
+                }
             }
         }
 
         printf("%d\n", pageFaults);
-        pageFaults = 0;
     }
 
   return 0;
