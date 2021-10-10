@@ -24,7 +24,7 @@ vector<int> Merge(vector<int> frontHalf, vector<int> backHalf, int fhLength, int
             toRet[fhCounter + bhCounter] = frontHalf[fhCounter];
             fhCounter++;
         } // next else if and else add the lower of the two elements at the front of each list and increments respective counter
-        else if (frontHalf[fhCounter] < backHalf[bhCounter]) 
+        else if (frontHalf[fhCounter] <= backHalf[bhCounter]) 
         {
             toRet[fhCounter + bhCounter] = frontHalf[fhCounter];
             fhCounter++;
