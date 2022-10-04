@@ -153,7 +153,7 @@ int main()
         for (int j = numEdges; j < numEdges + setASize; j++)
         { // create super source
             edgeList[j].source = 1; // location of "super source"
-            edgeList[j].destination = j - numEdges + 2; // don't know if this will work?
+            edgeList[j].destination = j - numEdges + 2;
         }
 
         for (int j = numEdges + setASize; j < numEdges + setASize + setBSize; j++)
